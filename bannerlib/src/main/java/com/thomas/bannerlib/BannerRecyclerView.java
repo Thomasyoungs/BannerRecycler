@@ -2,10 +2,13 @@ package com.thomas.bannerlib;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,19 +27,22 @@ public class BannerRecyclerView extends RecyclerView {
 
     public BannerRecyclerView(Context context) {
         super(context);
+        init(context);
     }
 
     public BannerRecyclerView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        init(context);
     }
 
     public BannerRecyclerView(Context context, @Nullable AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        init(context);
     }
 
 
-    public void init() {
-
+    public void init(Context context) {
+        mLoopTask = new AutoLoopTask(this);
     }
 
     @Override
@@ -80,6 +86,7 @@ public class BannerRecyclerView extends RecyclerView {
     }
 
     private BannerAdapterHelper mBannerAdaperHelper;
+    private BannerSwipHelper mBannerSwiper;
 
     public void setAdapterHelper(BannerAdapterHelper bannerAdaperHelper) {
         mBannerAdaperHelper = bannerAdaperHelper;
@@ -88,8 +95,11 @@ public class BannerRecyclerView extends RecyclerView {
     public int getRealCount() {
         if (mBannerAdaperHelper == null)
             return 0;
-//        return mBannerAdaperHelper.getRealCount();
-        return 3;
+        return mBannerAdaperHelper.getRealCount();
+    }
+
+    public void setSwiperHelper(BannerSwipHelper bannerSwipHelper) {
+        this.mBannerSwiper = bannerSwipHelper;
     }
 
     public interface OnPageChangeListener {
@@ -126,5 +136,109 @@ public class BannerRecyclerView extends RecyclerView {
         } else {
             scrollToPosition(item);
         }
+    }
+
+    public int getCurrentItem() {
+        if (mBannerSwiper == null) {
+            return NO_POSITION;
+        }
+        return mBannerSwiper.getCurrentItem();
+    }
+
+    static class AutoLoopTask implements Runnable {
+        private final WeakReference<BannerRecyclerView> reference;
+
+        AutoLoopTask(BannerRecyclerView banner) {
+            this.reference = new WeakReference<>(banner);
+        }
+
+        @Override
+        public void run() {
+            BannerRecyclerView banner = reference.get();
+            if (banner != null) {
+                int count = banner.getRealCount();
+                if (count == 0) {
+                    return;
+                }
+                if (banner.getCurrentItem() != RecyclerView.NO_POSITION) {
+                    int next = banner.getCurrentItem() + 1;
+                    banner.setCurrentItem(next, true);
+                    banner.postDelayed(banner.mLoopTask, banner.mLoopTime);
+                }
+            }
+        }
+    }
+
+    private AutoLoopTask mLoopTask;
+    private long mLoopTime = BannerConfig.LOOP_TIME;
+    private boolean mIsAutoLoop = true;
+
+
+    /**
+     * 开始轮播
+     */
+    public BannerRecyclerView start() {
+        if (mIsAutoLoop) {
+            stop();
+            postDelayed(mLoopTask, mLoopTime);
+        }
+        return this;
+    }
+
+    /**
+     * 停止轮播
+     */
+    public BannerRecyclerView stop() {
+        if (mIsAutoLoop) {
+            removeCallbacks(mLoopTask);
+        }
+        return this;
+    }
+
+    /**
+     * 是否允许自动轮播
+     *
+     * @param isAutoLoop ture 允许，false 不允许
+     */
+    public BannerRecyclerView isAutoLoop(boolean isAutoLoop) {
+        this.mIsAutoLoop = isAutoLoop;
+        return this;
+    }
+
+
+    /**
+     * 设置轮播间隔时间
+     *
+     * @param loopTime 时间（毫秒）
+     */
+    public BannerRecyclerView setLoopTime(long loopTime) {
+        this.mLoopTime = loopTime;
+        return this;
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        start();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        stop();
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+
+        int action = ev.getActionMasked();
+        if (action == MotionEvent.ACTION_UP
+                || action == MotionEvent.ACTION_CANCEL
+                || action == MotionEvent.ACTION_OUTSIDE) {
+            start();
+        } else if (action == MotionEvent.ACTION_DOWN) {
+            stop();
+        }
+        return super.dispatchTouchEvent(ev);
     }
 }

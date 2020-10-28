@@ -25,5 +25,5 @@ public class BannerConfig {
     public static final int CIRCLE = 0;
     public static final int RECT = 1;
     public static final int mIndicatorType = CIRCLE;
-
+    public static final int LOOP_TIME = 3000;
 }

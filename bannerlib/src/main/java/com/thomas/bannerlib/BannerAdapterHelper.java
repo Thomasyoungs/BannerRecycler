@@ -20,6 +20,10 @@ public class BannerAdapterHelper {
         realCount = size;
     }
 
+    public void setRealCount(int realCount) {
+        this.realCount = realCount;
+    }
+
     public void onCreateViewHolder(ViewGroup parent, View itemView) {
         RecyclerView.LayoutParams lp = (RecyclerView.LayoutParams) itemView.getLayoutParams();
         lp.width = parent.getWidth() - 2 * (PAGEPADDING + CARDMARGINSTART);

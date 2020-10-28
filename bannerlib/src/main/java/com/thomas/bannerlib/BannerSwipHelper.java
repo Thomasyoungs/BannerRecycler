@@ -38,7 +38,7 @@ public class BannerSwipHelper {
             return;
         }
         this.mRecyclerView = mRecyclerView;
-
+        mRecyclerView.setSwiperHelper(this);
         mContext = mRecyclerView.getContext();
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
