@@ -28,6 +28,8 @@ import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.os.LocaleList;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Interpolator;
@@ -44,9 +46,9 @@ import static com.thomas.bannerlib.BannerConfig.mIndicatorStrokeWidth;
 /**
  * Author：yangzhikuan
  * Date：2020-10-27
- * Description:LinePagerIndicatorDecoration
+ * Description:PagerIndicatorDecoration
  */
-public class LinePagerIndicatorDecoration extends RecyclerView.ItemDecoration {
+public class PagerIndicatorDecoration extends RecyclerView.ItemDecoration {
 
     private int colorActive = 0xFF000000;
     private int colorInactive = 0x66FF00FF;
@@ -56,7 +58,7 @@ public class LinePagerIndicatorDecoration extends RecyclerView.ItemDecoration {
     private final Paint mPaint = new Paint();
     private int itemCount;
 
-    public LinePagerIndicatorDecoration(int itemCount) {
+    public PagerIndicatorDecoration(int itemCount) {
 
         this.itemCount = itemCount;
         mPaint.setStrokeCap(Paint.Cap.ROUND);
@@ -64,7 +66,7 @@ public class LinePagerIndicatorDecoration extends RecyclerView.ItemDecoration {
         mPaint.setAntiAlias(true);
     }
 
-    public LinePagerIndicatorDecoration(int itemCount, int colorActive, int colorInactive) {
+    public PagerIndicatorDecoration(int itemCount, int colorActive, int colorInactive) {
         this.colorActive = colorActive;
         this.colorInactive = colorInactive;
         this.itemCount = itemCount;
@@ -105,6 +107,7 @@ public class LinePagerIndicatorDecoration extends RecyclerView.ItemDecoration {
         } else {
             mPaint.setStyle(Paint.Style.STROKE);
             // 计算指示器总长度 并保证居中显示
+
             float totalLength = mIndicatorItemLength * itemCount;
             float paddingBetweenItems = Math.max(0, itemCount - 1) * mIndicatorItemPadding;
             float indicatorTotalWidth = totalLength + paddingBetweenItems;
@@ -154,11 +157,11 @@ public class LinePagerIndicatorDecoration extends RecyclerView.ItemDecoration {
     private void drawInactiveIndicators(Canvas c, float indicatorStartX, float indicatorPosY, int itemCount) {
         mPaint.setColor(colorInactive);
 
-        // 指示器的宽度包含左右padding
+        // 指示器的宽度包含padding
         final float itemWidth = mIndicatorItemLength + mIndicatorItemPadding;
-
         float start = indicatorStartX;
         for (int i = 0; i < itemCount; i++) {
+            Log.i("indicatorStartX", "start   " + start);
             c.drawLine(start, indicatorPosY, start + mIndicatorItemLength, indicatorPosY, mPaint);
             start += itemWidth;
         }
@@ -179,18 +182,19 @@ public class LinePagerIndicatorDecoration extends RecyclerView.ItemDecoration {
         mPaint.setColor(colorActive);
         highlightPosition %= itemCount;
 
-        // 指示器的宽度包含左右padding
+        // 指示器的宽度包含padding
         final float itemWidth = mIndicatorItemLength + mIndicatorItemPadding;
-
+        float highlightStart = indicatorStartX + itemWidth * highlightPosition;
+        Log.i("indicatorStartX", "progress  " + progress);
         if (progress == 0F) {
-            float highlightStart = indicatorStartX + itemWidth * highlightPosition;
+            Log.i("indicatorStartX", "indicatorStartX  " + highlightStart + "  " + highlightPosition);
             canvas.drawLine(highlightStart, indicatorPosY,
                     highlightStart + mIndicatorItemLength, indicatorPosY, mPaint);
 
         } else {
-            float highlightStart = indicatorStartX + itemWidth * highlightPosition;
             // 计算高亮指示器在当前指示条跟随card移动的距离
             float partialLength = mIndicatorItemLength * progress;
+
             canvas.drawLine(highlightStart + partialLength, indicatorPosY,
                     highlightStart + mIndicatorItemLength, indicatorPosY, mPaint);
 
@@ -225,18 +229,18 @@ public class LinePagerIndicatorDecoration extends RecyclerView.ItemDecoration {
                     mINdicatorRadius, mPaint);
 
         } else {
-            float highlightStart = centerStartX + itemWidth * highlightPosition;
+            // 计算高亮指示器在下一指示条跟随card移动的距离
+            float centerX = 0;
+            if (highlightPosition == itemCount - 1 && progress > 0 || highlightPosition == 0 && progress < 0) {
+                centerX = centerStartX + itemWidth * highlightPosition;
+            } else {
+                centerX = centerStartX + itemWidth * highlightPosition + itemWidth * progress;
+            }
             // 计算高亮指示器在当前指示条跟随card移动的距离
-            float partialLength = itemWidth * progress;
-            canvas.drawCircle(highlightStart + partialLength, centerStartY,
+            canvas.drawCircle(centerX, centerStartY,
                     mINdicatorRadius, mPaint);
 
-            // 计算高亮指示器在下一指示条跟随card移动的距离
-            if (highlightPosition < itemCount - 1) {
-                highlightStart += itemWidth;
-                canvas.drawCircle(highlightStart, centerStartY,
-                        mINdicatorRadius, mPaint);
-            }
+
         }
     }
 

@@ -2,16 +2,12 @@ package com.thomas.greatgate;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.PagerSnapHelper;
 
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
 
 import com.thomas.bannerlib.BannerRecyclerView;
 import com.thomas.bannerlib.BannerSwipHelper;
-import com.thomas.bannerlib.LinePagerIndicatorDecoration;
+import com.thomas.bannerlib.PagerIndicatorDecoration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         mBannerScaleHelper.attachToRecyclerView(mRecyclerView);
 
         // pager indicator
-        mRecyclerView.addItemDecoration(new LinePagerIndicatorDecoration(3));
+        mRecyclerView.addItemDecoration(new PagerIndicatorDecoration(3));
 
 
     }
